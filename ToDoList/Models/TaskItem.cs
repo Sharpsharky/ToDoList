@@ -1,7 +1,4 @@
-﻿using System.Threading.Tasks;
-using System;
-
-namespace ToDoList.Models
+﻿namespace ToDoList.Models
 {
     public class TaskItem
     {

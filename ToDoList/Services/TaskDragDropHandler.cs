@@ -8,35 +8,36 @@ namespace Services.ToDoList
 {
     public class TaskDragDropHandler
     {
-        private ListBox _listBox;
-        private List<TaskItem> _tasks;
-        private Action _updateTaskList;
-        private Action _updateButtonState;
+        private readonly ListBox listBox;
+        private readonly List<TaskItem> tasks;
+        private readonly Action OnUpdateTaskListRequested;
+        private readonly Action OnUpdateButtonStateRequested;
 
-        public TaskDragDropHandler(ListBox listBox, List<TaskItem> tasks, Action updateTaskList, Action updateButtonState)
+        public TaskDragDropHandler(ListBox listBox, List<TaskItem> tasks, Action OnUpdateTaskListRequested, 
+            Action OnUpdateButtonStateRequested)
         {
-            _listBox = listBox;
-            _tasks = tasks;
-            _updateTaskList = updateTaskList;
-            _updateButtonState = updateButtonState;
+            this.listBox = listBox;
+            this.tasks = tasks;
+            this.OnUpdateTaskListRequested = OnUpdateTaskListRequested;
+            this.OnUpdateButtonStateRequested = OnUpdateButtonStateRequested;
 
-            _listBox.MouseDown += ListBox_MouseDown;
-            _listBox.DragDrop += ListBox_DragDrop;
-            _listBox.DragOver += ListBox_DragOver;
+            this.listBox.MouseDown += ListBox_MouseDown;
+            this.listBox.DragDrop += ListBox_DragDrop;
+            this.listBox.DragOver += ListBox_DragOver;
         }
 
         private void ListBox_MouseDown(object sender, MouseEventArgs e)
         {
-            if (_listBox.IndexFromPoint(e.Location) == ListBox.NoMatches)
-                _listBox.ClearSelected();
+            if (listBox.IndexFromPoint(e.Location) == ListBox.NoMatches)
+                listBox.ClearSelected();
 
-            int index = _listBox.IndexFromPoint(e.Location);
-            _updateButtonState?.Invoke();
+            int index = listBox.IndexFromPoint(e.Location);
+            OnUpdateButtonStateRequested?.Invoke();
 
             if (index >= 0)
             {
-                _listBox.SelectedIndex = index;
-                _listBox.DoDragDrop(_listBox.SelectedItem, DragDropEffects.Move);
+                listBox.SelectedIndex = index;
+                listBox.DoDragDrop(listBox.SelectedItem, DragDropEffects.Move);
             }
         }
 
@@ -47,22 +48,22 @@ namespace Services.ToDoList
 
         private void ListBox_DragDrop(object sender, DragEventArgs e)
         {
-            var point = _listBox.PointToClient(new Point(e.X, e.Y));
-            var targetIndex = _listBox.IndexFromPoint(point);
+            var point = listBox.PointToClient(new Point(e.X, e.Y));
+            var targetIndex = listBox.IndexFromPoint(point);
 
             var draggedItem = (TaskItem)e.Data.GetData(typeof(TaskItem));
-            var sourceIndex = _listBox.SelectedIndex;
+            var sourceIndex = listBox.SelectedIndex;
 
             if (targetIndex < 0)
-                targetIndex = _tasks.Count - 1;
+                targetIndex = tasks.Count - 1;
 
             if (sourceIndex != targetIndex)
             {
-                _tasks.RemoveAt(sourceIndex);
-                _tasks.Insert(targetIndex, draggedItem);
+                tasks.RemoveAt(sourceIndex);
+                tasks.Insert(targetIndex, draggedItem);
 
-                _updateTaskList?.Invoke();
-                _listBox.SelectedIndex = targetIndex;
+                OnUpdateTaskListRequested?.Invoke();
+                listBox.SelectedIndex = targetIndex;
             }
         }
     }

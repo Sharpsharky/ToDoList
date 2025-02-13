@@ -9,7 +9,7 @@ namespace Services.ToDoList
 {
     public static class TaskStatusLoader
     {
-        private static string filePath = "Config/statuses.json";
+        private static readonly string filePath = "Config/statuses.json";
         public static List<TaskStatus> Statuses { get; private set; } = new List<TaskStatus>();
 
         public static void LoadStatuses()
@@ -25,7 +25,7 @@ namespace Services.ToDoList
                 });
             }
 
-            string json = File.ReadAllText(filePath);
+            var json = File.ReadAllText(filePath);
             Statuses = JsonConvert.DeserializeObject<Dictionary<string, List<TaskStatus>>>(json)["statuses"];
         }
 

@@ -1,15 +1,18 @@
 ﻿using Services.ToDoList;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using ToDoList.Models;
+using ToDoList.Services;
 using UI.ToDoList;
 
 namespace ToDoListApp
 {
     public partial class MainForm : Form
     {
-        private List<TaskItem> tasks = new List<TaskItem>();
+        private readonly List<TaskItem> tasks = new List<TaskItem>();
+        private TaskManager taskManager;
 
         public MainForm()
         {
@@ -25,6 +28,7 @@ namespace ToDoListApp
             cmbStatus.DataSource = TaskStatusLoader.Statuses;
             cmbStatus.DisplayMember = "Name";
             cmbStatus.SelectedIndex = 0;
+            taskManager = new TaskManager(tasks, UpdateTaskList, UpdateButtonState);
 
             btnAddTask.Click += btnAddTask_Click;
             btnRemoveTask.Click += btnRemoveTask_Click;
@@ -42,8 +46,17 @@ namespace ToDoListApp
 
         private void UpdateTaskList()
         {
+            var selectedTask = (TaskItem)lstTasks.SelectedItem;
+
             lstTasks.DataSource = null;
             lstTasks.DataSource = tasks;
+            lstTasks.DisplayMember = "Description";
+
+            if (selectedTask != null)
+            {
+                lstTasks.SelectedItem = tasks.FirstOrDefault(t => t.Description == selectedTask.Description && t.StatusIndex == selectedTask.StatusIndex);
+            }
+
             lstTasks.Refresh();
         }
 
@@ -56,41 +69,19 @@ namespace ToDoListApp
 
         private void btnAddTask_Click(object sender, EventArgs e)
         {
-            var description = txtTask.Text.Trim();
-            var status = cmbStatus.SelectedItem.ToString();
-            var newTask = new TaskItem
-            {
-                Description = description,
-                StatusIndex = cmbStatus.SelectedIndex
-            };
-
-            tasks.Add(newTask);
-            UpdateTaskList();
+            taskManager.AddTask(txtTask.Text.Trim(), cmbStatus.SelectedIndex);
             txtTask.Clear();
         }
 
         private void btnRemoveTask_Click(object sender, EventArgs e)
         {
-            var selectedTask = (TaskItem)lstTasks.SelectedItem;
-            tasks.Remove(selectedTask);
-            UpdateTaskList();
-            UpdateButtonState();
+            taskManager.RemoveTask((TaskItem)lstTasks.SelectedItem);
             lstTasks.Focus();
         }
 
         private void btnUpdateStatus_Click(object sender, EventArgs e)
         {
-            if (lstTasks.SelectedItem == null) return;
-
-            var selectedTask = (TaskItem)lstTasks.SelectedItem;
-            var selectedListIndex = lstTasks.SelectedIndex;
-            var nextIndex = (selectedTask.StatusIndex + 1) % TaskStatusLoader.Statuses.Count;
-
-            selectedTask.StatusIndex = nextIndex;
-
-            UpdateTaskList();
-
-            lstTasks.SelectedIndex = selectedListIndex;
+            taskManager.UpdateTaskStatus((TaskItem)lstTasks.SelectedItem, lstTasks.SelectedIndex);
             lstTasks.Focus();
         }
 
@@ -112,13 +103,7 @@ namespace ToDoListApp
 
         private void btnSort_Click(object sender, EventArgs e)
         {
-            tasks.Sort((a, b) =>
-            {
-                int statusComparison = a.StatusIndex.CompareTo(b.StatusIndex);
-                return statusComparison != 0 ? statusComparison : string.Compare(a.Description, b.Description, StringComparison.Ordinal);
-            });
-
-            UpdateTaskList();
+            taskManager.SortTasks();
         }
     }
 }

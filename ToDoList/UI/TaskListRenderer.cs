@@ -7,7 +7,8 @@ namespace UI.ToDoList
 {
     public static class TaskListRenderer
     {
-        private static Color selectedBackground = Color.LightGray;
+        private static readonly Color lightGray = Color.LightGray;
+        private static readonly Color selectedBackground = lightGray;
 
         public static void DrawTaskItem(DrawItemEventArgs e, ListBox listBox)
         {
