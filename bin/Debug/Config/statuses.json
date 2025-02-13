@@ -1,7 +1,0 @@
-﻿{
-    "statuses": [
-        { "name": "To do", "color": "#0000FF" },
-        { "name": "In progress", "color": "#FFA500" },
-        { "name": "Done", "color": "#008000" }
-    ]
-}
