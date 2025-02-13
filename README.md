@@ -7,7 +7,7 @@ Friendly for designers thanks to a JSON file that allows quick changes to displa
 ## Features
 
  - Add, Remove & Update Tasks,
- - Set tasks as To Do, In Progress, or Done.
+ - Set tasks as To Do, In Progress, or Done,
  - Custom Drag & Drop – Change the order of tasks by dragging them,
  - Sorting – Sort tasks status,
  - Color-Coded Statuses,
