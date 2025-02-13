@@ -1,18 +1,15 @@
-﻿using System;
+﻿using Services.ToDoList;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
-using ToDoList;
 using ToDoList.Models;
+using UI.ToDoList;
 
 namespace ToDoListApp
 {
     public partial class MainForm : Form
     {
         private List<TaskItem> tasks = new List<TaskItem>();
-        private Point mouseDownLocation;
 
         public MainForm()
         {
@@ -21,13 +18,12 @@ namespace ToDoListApp
             UpdateButtonState();
             UpdateAddButtonState();
         }
-
+        
         private void InitializeControls()
         {
             TaskStatusLoader.LoadStatuses();
             cmbStatus.DataSource = TaskStatusLoader.Statuses;
             cmbStatus.DisplayMember = "Name";
-
             cmbStatus.SelectedIndex = 0;
 
             btnAddTask.Click += btnAddTask_Click;
@@ -36,13 +32,26 @@ namespace ToDoListApp
             btnSort.Click += btnSort_Click;
             lstTasks.SelectedIndexChanged += (sender, e) => UpdateButtonState();
             txtTask.TextChanged += (sender, e) => UpdateAddButtonState();
-            lstTasks.DragOver += lstTasks_DragOver;
-            lstTasks.DragDrop += lstTasks_DragDrop;
+            new TaskDragDropHandler(lstTasks, tasks, UpdateTaskList, UpdateButtonState);
         }
 
         private void UpdateAddButtonState()
         {
             btnAddTask.Enabled = !string.IsNullOrWhiteSpace(txtTask.Text);
+        }
+
+        private void UpdateTaskList()
+        {
+            lstTasks.DataSource = null;
+            lstTasks.DataSource = tasks;
+            lstTasks.Refresh();
+        }
+
+        private void UpdateButtonState()
+        {
+            var hasSelection = lstTasks.SelectedItem != null;
+            btnUpdateStatus.Enabled = hasSelection;
+            btnRemoveTask.Enabled = hasSelection;
         }
 
         private void btnAddTask_Click(object sender, EventArgs e)
@@ -58,14 +67,6 @@ namespace ToDoListApp
             tasks.Add(newTask);
             UpdateTaskList();
             txtTask.Clear();
-        }
-
-
-        private void UpdateTaskList()
-        {
-            lstTasks.DataSource = null;
-            lstTasks.DataSource = tasks;
-            lstTasks.Refresh();
         }
 
         private void btnRemoveTask_Click(object sender, EventArgs e)
@@ -99,53 +100,9 @@ namespace ToDoListApp
             lstTasks.Top = (groupBoxBottom.Height - lstTasks.Height) / 2;
         }
 
-        private void UpdateButtonState()
-        {
-            var hasSelection = lstTasks.SelectedItem != null;
-            btnUpdateStatus.Enabled = hasSelection;
-            btnRemoveTask.Enabled = hasSelection;
-        }
-
-        private void lstTasks_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (lstTasks.IndexFromPoint(e.Location) == ListBox.NoMatches)
-                lstTasks.ClearSelected();
-
-            int index = lstTasks.IndexFromPoint(e.Location);
-            UpdateButtonState();
-            if (index >= 0)
-            {
-                lstTasks.SelectedIndex = index;
-
-                lstTasks.DoDragDrop(lstTasks.SelectedItem, DragDropEffects.Move);
-            }
-        }
-
         private void lstTasks_DrawItem(object sender, DrawItemEventArgs e)
         {
             TaskListRenderer.DrawTaskItem(e, lstTasks);
-        }
-
-        private void lstTasks_DragDrop(object sender, DragEventArgs e)
-        {
-            var point = lstTasks.PointToClient(new Point(e.X, e.Y));
-            var targetIndex = lstTasks.IndexFromPoint(point);
-
-            var draggedItem = (TaskItem)e.Data.GetData(typeof(TaskItem));
-            var sourceIndex = lstTasks.SelectedIndex;
-
-            if (targetIndex < 0)
-                targetIndex = tasks.Count - 1;
-
-            if (sourceIndex != targetIndex)
-            {
-                tasks.RemoveAt(sourceIndex);
-                tasks.Insert(targetIndex, draggedItem);
-
-                UpdateTaskList();
-
-                lstTasks.SelectedIndex = targetIndex;
-            }
         }
 
         private void lstTasks_DragOver(object sender, DragEventArgs e)
@@ -155,7 +112,12 @@ namespace ToDoListApp
 
         private void btnSort_Click(object sender, EventArgs e)
         {
-            tasks = tasks.OrderBy(task => task.StatusIndex).ThenBy(task => task.Description).ToList();
+            tasks.Sort((a, b) =>
+            {
+                int statusComparison = a.StatusIndex.CompareTo(b.StatusIndex);
+                return statusComparison != 0 ? statusComparison : string.Compare(a.Description, b.Description, StringComparison.Ordinal);
+            });
+
             UpdateTaskList();
         }
     }

@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using ToDoList.Models;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
-namespace ToDoList
+namespace Services.ToDoList
 {
     public static class TaskStatusLoader
     {

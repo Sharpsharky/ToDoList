@@ -84,9 +84,7 @@
             this.lstTasks.Size = new System.Drawing.Size(250, 173);
             this.lstTasks.TabIndex = 2;
             this.lstTasks.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lstTasks_DrawItem);
-            this.lstTasks.DragDrop += new System.Windows.Forms.DragEventHandler(this.lstTasks_DragDrop);
             this.lstTasks.DragOver += new System.Windows.Forms.DragEventHandler(this.lstTasks_DragOver);
-            this.lstTasks.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lstTasks_MouseDown);
             // 
             // btnRemoveTask
             // 
